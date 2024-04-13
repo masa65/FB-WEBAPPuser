@@ -1,0 +1,38 @@
+@media (max-width: 600px) {
+    #message-input, button, a {
+        width: 100%;  /* ボタンとリンクを画面幅全体に広げる */
+        padding: 12px 20px; /* タッチしやすいようにパディングを増やす */
+    }
+
+    .form-container {
+        padding: 10px; /* フォームコンテナのパディングを調整 */
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        font-size: 14px; /* 基本のフォントサイズを小さな画面で調整 */
+    }
+
+    .message-name, .message-time {
+        font-size: 12px; /* メッセージの名前と時間のフォントサイズを小さくする */
+    }
+}
+
+@media (max-width: 600px) {
+    .message-icon {
+        width: 30px;  /* アイコンのサイズを小さく調整 */
+        height: 30px;
+    }
+}
+
+@media (max-width: 600px) {
+    #chat-container {
+        margin: 10px;  /* チャットコンテナのマージンを調整 */
+    }
+
+    #messages-container {
+        max-height: 400px;  /* モバイルデバイスに合わせて最大高さを調整 */
+    }
+}
+

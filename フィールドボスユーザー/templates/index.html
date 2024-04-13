@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/responsive.css">
+
+    <title>メインページ</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <!-- Firebase SDKのスクリプトを読み込む -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
+</head>
+<body>
+    <h1>新フィールドボス通知君</h1>
+    <!-- ユーザーID登録フォーム -->
+    <form id="userForm">
+    <input type="text" id="userId" placeholder="ゲーム名の家名を入力し登録ボタンを押してください">
+    <button type="submit">登録</button>
+</form>
+<button id="permitButton" onclick="requestNotificationPermission()">通知を許可</button>
+
+
+
+    <!-- 通知ページへのリンク -->
+    <a href="/notifications">通知履歴</a>
+    <!-- リアルタイムチャットページへのリンク -->
+    <a href="/chat">リアルタイムチャット</a>
+
+    <p class="important-notice">通知を受け取るために必ず読んでください！</p>
+    <!-- 説明文 -->
+    <div class="explanation">
+        <p>※まず最初に通知のポップアップで許可をしてください</p>
+        <p>※次にトークンを発行するために登録ファームに家名を登録してください</p>
+        <p>※重複しているIDは登録できません</p>
+        <p>※登録ボタンを押したら数秒お待ちください。登録ポップが表示されたら完了です</p>
+        <p>※通知許可のポップアップがない場合は「通知を許可」ボタンを押して通知を許可してください</p>
+        <p>※通知の許可についてはブラウザによって異なるため詳細は調べてください</p>
+        <p>★通知履歴ではFBの通知履歴が表示されています</p>
+        <p>★リアルタイムチャットはグーグルアカウントを認証した人のみチャットが可能です</p>
+
+    </div>
+
+    <!-- 管理人へ連絡 -->
+    <div class="contact-admin">
+        <a href="https://twitter.com/kuroisabaku777">管理人へ連絡</a>
+    </div>
+
+    <script src="/static/main.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

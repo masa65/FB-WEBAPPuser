@@ -1,0 +1,36 @@
+/* styles.css */
+#chat-container {
+  margin-top: 20px;
+}
+
+#messages {
+  height: 300px;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+#message-input {
+  width: calc(100% - 110px);
+}
+
+#send-message {
+  width: 100px;
+}
+.explanation {
+    border: 3px solid red; /* 赤枠 */
+    padding: 5px; /* 枠内の余白 */
+    margin-top: 10px; /* 上部のマージンを追加 */
+}
+
+.explanation p {
+    margin: 5px 0; /* テキストと枠の間隔を減らす */
+}
+
+.important-notice {
+        color: red;
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+

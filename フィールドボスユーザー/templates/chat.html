@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+   <link rel="stylesheet" href="/static/responsive.css">
+    <!-- 新しいスタイルシート -->
+
+
+    <title>リアルタイムチャット</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
+
+    <!-- Firebaseの初期化スクリプト -->
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyAUqu12Twv-CzxaDFC6NebC30xw8f-E7WQ",
+            authDomain: "fbnotification-system.firebaseapp.com",
+            databaseURL: "https://fbnotification-system-default-rtdb.firebaseio.com",
+            projectId: "fbnotification-system",
+            storageBucket: "fbnotification-system.appspot.com",
+            messagingSenderId: "542867341104",
+            appId: "1:542867341104:web:be6c950107a4f5045052f5",
+            measurementId: "G-KLY6GY9XB4"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                console.log('User is signed in:', user);
+                // ユーザーがログインした後の処理: Firestoreにユーザーデータを保存
+                const db = firebase.firestore();
+                db.collection('chat_users').doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    profilePicture: user.photoURL
+                }, { merge: true }); // 既存のデータにマージ
+            } else {
+                console.log('User is not signed in.');
+            }
+        });
+
+
+        function showEditPopup(messageId) {
+        const editPopup = document.createElement('div');
+        editPopup.style.position = 'fixed';
+        editPopup.style.left = '50%';
+        editPopup.style.top = '50%';
+        editPopup.style.transform = 'translate(-50%, -50%)';
+        editPopup.style.backgroundColor = 'white';
+        editPopup.style.border = '1px solid black';
+        editPopup.style.padding = '20px';
+        editPopup.style.zIndex = '1000'; // 確実に最前面に表示する
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '編集内容を記載';
+        editPopup.appendChild(input);
+
+        const submitButton = document.createElement('button');
+        submitButton.textContent = '決定';
+        submitButton.onclick = () => {
+            if (input.value.trim() !== '') {
+                db.collection('chat_messages').doc(messageId).update({ text: input.value.trim() });
+                editPopup.remove();
+            }
+        };
+        editPopup.appendChild(submitButton);
+
+        const cancelButton = document.createElement('button');
+        cancelButton.textContent = 'キャンセル';
+        cancelButton.onclick = () => editPopup.remove();
+        editPopup.appendChild(cancelButton);
+
+        document.body.appendChild(editPopup);
+        input.focus();
+    }
+
+
+        function showMenu(x, y, messageId) {
+        const menu = document.getElementById('edit-delete-menu');
+        menu.style.left = x + 'px';
+        menu.style.top = y + 'px';
+        menu.style.display = 'block';
+
+        // 編集と削除のオプションにイベントリスナーを設定
+        document.getElementById('edit-message').onclick = () => {
+            document.getElementById('edit-delete-menu').style.display = 'none';
+            showEditPopup(messageId); // 編集カスタムUIの表示
+        };
+
+        document.getElementById('delete-message').onclick = () => {
+            db.collection('chat_messages').doc(messageId).delete();
+            document.getElementById('edit-delete-menu').style.display = 'none'; // メニューを非表示
+        };
+
+        // 他の場所をクリックした時にメニューを非表示にする
+        window.addEventListener('click', (event) => {
+            if (!menu.contains(event.target)) {
+                menu.style.display = 'none';
+            }
+        });
+    }
+
+
+
+    </script>
+     <!-- ...その他の<head>内のコード... -->
+    <link rel="stylesheet" type="text/css" href="/static/styles2.css">
+</head>
+<body>
+    <h1>リアルタイムチャット</h1>
+    <div id="messages-container" style="overflow-y: auto; max-height: 500px;">
+    <div id="messages" class="messages"></div>
+</div>
+
+<!-- 入力フォームとボタンを form-container で囲む -->
+<div class="form-container">
+    <textarea id="message-input" placeholder="メッセージを入力"></textarea>
+    <button onclick="insertNewLine()">改行</button>
+    <button onclick="signInWithGoogle()">Googleでログイン</button>
+    <button onclick="sendMessage()">送信</button>
+    <a href="/" class="button button-link">ホーム画面に戻る</a>
+</div>
+
+ <!-- 新しい説明セクション -->
+    <div class="additional-info">
+        <p>PCの場合、改行は「シフト + エンター」で可能です。</p>
+        <p>グーグルアカウントでログインした人のみが書き込み可能です。</p>
+        <p>自分のチャットの吹き出しの左にある「・・・」を押すことで編集と削除が可能です。</p>
+    </div>
+
+
+<div id="edit-delete-menu" style="display:none; position:absolute; background-color:white; border:1px solid black; padding:5px;">
+        <div id="edit-message">編集</div>
+        <div id="delete-message">削除</div>
+    </div>
+
+
+
+    <script>
+        const db = firebase.firestore();
+        const messages = db.collection('chat_messages');
+        const messagesContainer = document.getElementById('messages-container');
+
+        function scrollToBottom(forceScroll = false) {
+    // 自動スクロールを実行する閾値を設定（例: ビューポートの最下部からのピクセル数）
+    const scrollThreshold = 150;
+
+    // 現在のスクロール位置 + コンテナの高さでビューポートの最下部の位置を計算
+    const currentScrollPosition = messagesContainer.scrollTop + messagesContainer.offsetHeight;
+
+    // ビューポートの最下部から全体のコンテンツの最下部までの距離を計算
+    const distanceFromBottom = messagesContainer.scrollHeight - currentScrollPosition;
+
+    // ユーザーが閾値内にいるか、強制スクロールがtrueの場合にスクロールを実行
+    if (distanceFromBottom <= scrollThreshold || forceScroll) {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+        }
+
+        let initialLoad = true; // 初期読み込みかどうかを判定するフラグ
+
+        messages.orderBy('timestamp').onSnapshot((snapshot) => {
+        let shouldScroll = messagesContainer.scrollTop + messagesContainer.offsetHeight >= messagesContainer.scrollHeight - 200;
+  messagesContainer.innerHTML = ''; // 既存のメッセージをクリア
+  snapshot.forEach((doc) => {
+    const message = doc.data();
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+
+    const user = firebase.auth().currentUser;
+    const isMine = user && message.uid === user.uid;
+    if (isMine) {
+      messageElement.classList.add('mine');
+    } else {
+      messageElement.classList.add('other');
+    }
+
+    const iconContainer = document.createElement('div');
+    iconContainer.classList.add('icon-container');
+
+    const icon = document.createElement('img');
+    icon.src = message.iconUrl || 'default_icon.png';
+    icon.alt = 'User Icon';
+    icon.classList.add('message-icon');
+    iconContainer.appendChild(icon);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.classList.add('message-name');
+    nameDiv.textContent = message.name || '匿名ユーザー';
+    iconContainer.appendChild(nameDiv);
+
+    messageElement.appendChild(iconContainer);
+
+    const messageContentElement = document.createElement('div');
+    messageContentElement.classList.add('message-content');
+
+    const messageTextElement = document.createElement('p');
+    messageTextElement.classList.add('message-text');
+    messageTextElement.innerHTML = message.text.replace(/\n/g, '<br>');
+    messageContentElement.appendChild(messageTextElement);
+
+    messageElement.appendChild(messageContentElement);
+
+
+
+    if (isMine) {
+  const moreOptionsButton = document.createElement('button');
+  moreOptionsButton.innerHTML = '...';
+  moreOptionsButton.style.border = 'none'; // 枠線なし
+  moreOptionsButton.style.background = 'none'; // 背景なし
+  moreOptionsButton.style.cursor = 'pointer'; // カーソルをポインタに
+  moreOptionsButton.classList.add('options-button'); // CSSクラスを追加できます
+
+  moreOptionsButton.onclick = function(event) {
+            event.stopPropagation(); // バブリングを防ぐ
+            const rect = moreOptionsButton.getBoundingClientRect();
+            showMenu(rect.right, rect.top, doc.id); // メニューを表示
+        };
+        messageElement.appendChild(moreOptionsButton);
+    }
+
+
+    // メッセージ時間の追加
+    const timeSpan = document.createElement('span');
+    timeSpan.classList.add('message-time');
+    if (message.timestamp) {
+      const date = message.timestamp.toDate();
+      timeSpan.textContent = date.toLocaleTimeString();
+    } else {
+      timeSpan.textContent = 'Loading...';
+    }
+
+    // 自分のメッセージか相手のメッセージかによって時間の位置を決定
+    if (isMine) {
+  messageElement.insertBefore(timeSpan, messageElement.firstChild); // 自分のメッセージの場合、時間を前に追加
+} else {
+  messageElement.appendChild(messageContentElement); // 相手のメッセージの場合、先にメッセージコンテンツを追加
+  messageElement.appendChild(timeSpan); // 時間を後ろに追加
+}
+
+    // アイコンと名前のコンテナをメッセージエレメントの先頭に追加
+    messageElement.insertBefore(iconContainer, messageElement.firstChild);
+
+    messagesContainer.appendChild(messageElement);
+  });
+
+
+
+  if (!initialLoad && shouldScroll) {
+    scrollToBottom(true);
+  }
+
+
+  if (initialLoad) {
+    scrollToBottom(true); // 初期読み込み時は無条件にスクロール
+    initialLoad = false; // フラグを更新
+  } else {
+    // ユーザーがチャットエリアの最下部にいるかどうかをチェック
+
+  const isNearBottom = messagesContainer.scrollTop + messagesContainer.clientHeight >= messagesContainer.scrollHeight - 150;
+  if (isNearBottom) {
+    scrollToBottom(true);
+  }
+  }
+});;
+
+
+        document.getElementById('message-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // 通常のEnterキーの挙動（改行）を防ぐ
+                sendMessage(); // メッセージ送信関数を呼び出す
+            }
+        });
+
+
+        function signInWithGoogle() {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    // 複数アカウント選択を可能にするために設定
+    provider.setCustomParameters({
+        prompt: 'select_account'
+    });
+    // ログアウトせずに現在のユーザーがあれば、新しいログインを促す
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+        console.log("ログイン成功:", result.user);
+    }).catch(function(error) {
+        console.error("ログインエラー:", error);
+    });
+}
+
+        function sendMessage() {
+    const user = firebase.auth().currentUser;
+    const inputElement = document.getElementById('message-input');
+    const text = inputElement.value.trim();
+
+    if (user && text !== "") {
+
+
+
+
+        db.collection('chat_messages').add({
+            uid: user.uid,
+            name: user.displayName || "匿名ユーザー",
+            iconUrl: user.photoURL,
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            console.log("メッセージが正常に送信されました");
+            inputElement.value = ''; // 入力フィールドをクリア
+            scrollToBottom(true); // チャットエリアのみをスクロール
+        })
+        .catch((error) => {
+            console.error("メッセージの送信に失敗しました:", error);
+        });
+    } else {
+        console.error("メッセージの送信に必要な情報が足りません");
+    }
+}
+
+        function insertNewLine() {
+    const inputElement = document.getElementById('message-input');
+    inputElement.value += "\n"; // 改行を挿入
+    inputElement.focus(); // ユーザーが引き続きタイピングできるようにフォーカスを戻す
+}
+        // ページ読み込み時とメッセージ送信時にスクロール処理を実行する
+        window.onload = function() {
+        scrollToBottom(true); // チャットエリアを強制的に最下部にスクロール
+        window.scrollTo(0, document.body.scrollHeight); // ページ全体を最下部にスクロール
+    };
+
+// フォアグラウンドで通知を受け取った時の処理
+messaging.onMessage((payload) => {
+    console.log('フォアグラウンドで通知を受信しました。', payload);
+    console.log('通知の許可状態:', Notification.permission);
+
+    if (Notification.permission === "granted") {
+        const notificationTitle = payload.notification.title;
+        const notificationOptions = {
+            body: payload.notification.body,
+            icon: payload.notification.icon,
+            data: { url: payload.notification.click_action } // 通知からのリダイレクト用URLを設定
+        };
+
+        var notification = new Notification(notificationTitle, notificationOptions);
+        notification.onclick = function(event) {
+            event.preventDefault(); // デフォルトのイベントをキャンセル
+            window.open(notification.data.url, '_blank'); // 新しいタブでURLを開く
+        }
+    } else {
+        console.error('通知の権限が与えられていません。');
+    }
+});
+
+</script>
+</body>
+</html>
+
+

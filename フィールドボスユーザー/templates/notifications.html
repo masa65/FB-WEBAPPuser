@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/responsive.css">
+
+    <title>通知ページ</title>
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
+    <script>
+        // Firebaseの設定
+        var firebaseConfig = {
+            apiKey: "AIzaSyAUqu12Twv-CzxaDFC6NebC30xw8f-E7WQ",
+    authDomain: "fbnotification-system.firebaseapp.com",
+    databaseURL: "https://fbnotification-system-default-rtdb.firebaseio.com",
+    projectId: "fbnotification-system",
+    storageBucket: "fbnotification-system.appspot.com",
+    messagingSenderId: "542867341104",
+    appId: "1:542867341104:web:be6c950107a4f5045052f5",
+    measurementId: "G-KLY6GY9XB4"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+
+        var db = firebase.firestore();
+        const messaging = firebase.messaging();
+
+
+        // ドキュメントが読み込まれた後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            db.collection("notifications").orderBy("timestamp", "desc")
+                .onSnapshot(function(snapshot) {
+    var notificationsList = document.getElementById('notifications-list');
+    notificationsList.innerHTML = '';  // 既存のリストをクリア
+    snapshot.forEach(function(doc) {
+        var data = doc.data();
+        var timestamp = new Date(data.timestamp.seconds * 1000);
+        var formattedTimestamp = timestamp.toLocaleString('ja-JP');
+        var li = document.createElement('li');
+        li.textContent = `${formattedTimestamp}: ${data.user_id} - ${data.message}`;
+        notificationsList.appendChild(li);
+    });
+});
+        });
+
+
+
+
+ // フォアグラウンドで通知を受け取った時の処理
+messaging.onMessage((payload) => {
+    console.log('フォアグラウンドで通知を受信しました。', payload);
+    console.log('通知の許可状態:', Notification.permission);
+
+    if (Notification.permission === "granted") {
+        const notificationTitle = payload.notification.title;
+        const notificationOptions = {
+            body: payload.notification.body,
+            icon: payload.notification.icon,
+            data: { url: payload.notification.click_action } // 通知からのリダイレクト用URLを設定
+        };
+
+        var notification = new Notification(notificationTitle, notificationOptions);
+        notification.onclick = function(event) {
+            event.preventDefault(); // デフォルトのイベントをキャンセル
+            window.open(notification.data.url, '_blank'); // 新しいタブでURLを開く
+        }
+    } else {
+        console.error('通知の権限が与えられていません。');
+    }
+});
+    </script>
+</head>
+<body>
+    <h1>通知履歴</h1>
+    <ul id="notifications-list">
+        <!-- ここに通知が動的に挿入されます -->
+    </ul>
+    <a href="/">ホーム画面に戻る</a>
+</body>
+</html>
+
+

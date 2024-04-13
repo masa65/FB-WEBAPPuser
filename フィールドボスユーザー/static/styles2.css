@@ -1,0 +1,207 @@
+/* アイコンと名前のコンテナ */
+.icon-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* アイコンと名前を中央揃えにする */
+  position: relative; /* 親要素に position: relative; を追加 */
+}
+
+#messages-container {
+  background-image: url('https://firebasestorage.googleapis.com/v0/b/fbnotification-system.appspot.com/o/%E7%84%A1%E9%A1%8C.png12312123.png?alt=media&token=6cbfc096-f23a-4be8-b7be-fae949b5c4ea'); /* 背景画像のパスを指定 */
+  background-size: cover; /* 背景画像をコンテナに合わせて調整 */
+  background-position: center; /* 背景画像を中央に配置 */
+  background-repeat: no-repeat; /* 背景画像を繰り返し表示しない */
+  overflow: auto; /* コンテンツがはみ出たらスクロールバーを表示 */
+  max-height: 500px; /* 最大高さを指定 */
+}
+
+
+/* メッセージ全体のスタイル */
+.message {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+/* 自分のメッセージのコンテナ */
+.mine {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: row-reverse; /* コンテンツを右から左へ並べる */
+}
+
+/* 相手のメッセージの時間 - 念のためのスタイル */
+.other .message-time {
+  margin-right: auto; /* 右に自動的にスペースを追加し、吹き出しを左に押し出す */
+}
+
+/* アイコンのスタイル */
+.message-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* 名前のスタイル */
+.message-name {
+  font-size: 0.75em; /* 名前のフォントサイズ */
+}
+
+
+/* メッセージ時間のスタイル */
+.message-time {
+  font-size: 0.75em; /* 時間のフォントサイズ */
+  margin: 0 10px; /* 時間の左右のマージン */
+}
+
+/* 自分のメッセージの時間 */
+.mine .message-time {
+  order: 2; /* フレックスボックス内での順序を最後にする */
+  margin-left: auto; /* 左に自動的にスペースを追加し、吹き出しを右に押し出す */
+}
+
+/* 自分のメッセージの吹き出し */
+.mine .message-content {
+  background-color: #94df83; /* ここを吹き出しの背景色に合わせます */
+  position: relative;
+  border-radius: 15px;
+  padding: 10px;
+  margin-right: 20px; /* 吹き出しのしっぽのスペースを確保 */
+}
+
+/* 自分のメッセージコンテンツの吹き出し部分 */
+.mine .message-content:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -10px; /* 三角形の位置を調整 */
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-left-color: #94df83; /* 吹き出しと同じ色にする */
+  border-right: 0;
+  margin-top: -10px; /* 三角形の位置を上に微調整 */
+  transform: translateY(-50%);
+}
+
+
+/* 相手のメッセージの吹き出し */
+.other .message-content {
+  background-color: #ffffff; /* 吹き出しの背景色 */
+  position: relative;
+  border-radius: 15px;
+  padding: 10px;
+  overflow: visible;
+  margin-left: 20px; /* 吹き出しのしっぽのスペースを確保 */
+}
+
+/* 相手のメッセージコンテンツの吹き出し部分 */
+.other .message-content:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -20px; /* 吹き出しの矢印の位置を左に20pxずらす */
+  width: 0;
+  height: 0;
+  border: 10px solid transparent;
+  border-right-color: #ffffff; /* 吹き出しと同じ色にする */
+  transform: translateY(-50%);
+  z-index: 1; /* z-index を追加して重なり順を制御 */
+}
+
+
+#edit-delete-menu {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+#edit-delete-menu div {
+  padding: 10px;
+  cursor: pointer;
+}
+
+#edit-delete-menu div:hover {
+  background-color: #f0f0f0;
+}
+
+
+
+
+
+.input-group {
+    display: flex;
+    flex-direction: row; /* 項目を横に並べる */
+    align-items: center; /* 項目を垂直方向の中央に揃える */
+    gap: 10px; /* 項目間のスペース */
+    padding: 0; /* 内側のパディングをゼロにする */
+    margin: 0; /* 外側のマージンをゼロにする */
+}
+
+#message-input, button, a {
+    box-sizing: border-box; /* パディングとボーダーを要素の全体サイズに含める */
+    border: none; /* ボーダーを削除 */
+    margin: 0; /* マージンをゼロに */
+    padding: 10px; /* 快適なタイピングのためのパディング */
+}
+
+/* ボタンの特定のスタイルがあれば適用する */
+button, a {
+    background-color: #f0f0f0; /* あなたのテーマに合わせた背景色 */
+    border-radius: 5px; /* 角を丸くする */
+    /* その他のスタイル属性 */
+}
+
+/* テキストエリアを適切にスタイリング */
+#message-input {
+ border: 1px solid #ccc; /* 枠をつける */
+    width: 100%; /* コンテナの幅いっぱいに広がる */
+    height: 50px; /* 適切な高さを設定 */
+}
+
+/* レスポンシブ対応のために、必要に応じてメディアクエリを追加します */
+@media (max-width: 600px) {
+    .input-group {
+        flex-direction: column; /* 項目を縦に並べる */
+        gap: 5px; /* 項目間のスペースを小さくする */
+    }
+
+    #message-input {
+        width: auto; /* 小さな画面での幅調整 */
+    }
+}
+
+
+.form-container {
+    /* フォームとボタンが常に下部に配置されるようにする */
+    margin-top: auto;
+}
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* コンテナの高さを画面に合わせる */
+}
+
+/* ボタン型リンク特有のスタイル */
+.button-link {
+    text-decoration: none; /* 下線を消す */
+    display: inline-flex; /* フレックスボックスの特性を持たせる */
+    align-items: center; /* 垂直方向の中心に配置 */
+    justify-content: center; /* 水平方向の中心に配置 */
+}
+
+/* 未訪問リンクのスタイル */
+.button-link, .button-link:link {
+    color: #000; /* 黒色に設定 */
+}
+
+/* 訪問済みリンクのスタイル */
+.button-link:visited {
+    color: #000; /* 黒色に設定 */
+}
+
+
